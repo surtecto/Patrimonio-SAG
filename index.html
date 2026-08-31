@@ -1,1 +1,1362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Registro Patrimonial · San Andrés de Giles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 
+<style>
+  /* ─── TOKENS ─── */
+  :root {
+    --bg:          #F5F0E8;
+    --surface:     #EDE7DA;
+    --surface-2:   #E2DBCC;
+    --border:      #C6BAA6;
+    --div:         #D8D0C2;
+    --text:        #28190E;
+    --text-2:      #56432E;
+    --text-3:      #8B7A65;
+    --gold:        #876411;
+    --gold-2:      #B38C20;
+    --gold-pale:   #EFE0AA;
+    --terra:       #7A3622;
+    --nav-bg:      #211608;
+    --nav-fg:      #EDE0C2;
+    --hero-bg:     #221708;
+    --map-paper:   #DDD4BE;
+    --map-paper-d: #262018;
+    --map-street:  #7A6040;
+    --map-plaza:   #B8D0A0;
+    --map-water:   #90BDD4;
+    --map-rail:    #6A5540;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:          #181209;
+      --surface:     #211A10;
+      --surface-2:   #2C2318;
+      --border:      #453520;
+      --div:         #382C1C;
+      --text:        #ECE6DC;
+      --text-2:      #C0AF96;
+      --text-3:      #8A7A66;
+      --gold:        #C4991C;
+      --gold-2:      #DDB830;
+      --gold-pale:   #3A2C06;
+      --terra:       #D07B58;
+      --nav-bg:      #0C0905;
+      --nav-fg:      #EDE0C2;
+      --hero-bg:     #0E0A04;
+      --map-paper:   #262018;
+      --map-paper-d: #262018;
+      --map-street:  #A09070;
+      --map-plaza:   #2A3C20;
+      --map-water:   #1A3444;
+      --map-rail:    #6A5844;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg:          #181209;
+    --surface:     #211A10;
+    --surface-2:   #2C2318;
+    --border:      #453520;
+    --div:         #382C1C;
+    --text:        #ECE6DC;
+    --text-2:      #C0AF96;
+    --text-3:      #8A7A66;
+    --gold:        #C4991C;
+    --gold-2:      #DDB830;
+    --gold-pale:   #3A2C06;
+    --terra:       #D07B58;
+    --nav-bg:      #0C0905;
+    --nav-fg:      #EDE0C2;
+    --hero-bg:     #0E0A04;
+    --map-paper:   #262018;
+    --map-paper-d: #262018;
+    --map-street:  #A09070;
+    --map-plaza:   #2A3C20;
+    --map-water:   #1A3444;
+    --map-rail:    #6A5844;
+  }
+
+  /* ─── RESET ─── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 16px; }
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+  }
+  img { max-width: 100%; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+  /* ─── NAV ─── */
+  nav {
+    position: sticky; top: 0; z-index: 200;
+    background: var(--nav-bg);
+    height: 54px;
+    display: flex; align-items: center;
+    padding: 0 2rem;
+    gap: 0;
+    border-bottom: 2px solid var(--gold);
+  }
+  .nav-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold-2);
+    margin-right: auto;
+    white-space: nowrap;
+  }
+  .nav-links { display: flex; list-style: none; height: 100%; }
+  .nav-links a {
+    display: flex; align-items: center; height: 100%;
+    padding: 0 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 0.08em;
+    color: var(--nav-fg); text-decoration: none;
+    opacity: 0.6;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: opacity .15s, border-color .15s;
+  }
+  .nav-links a:hover { opacity: 1; border-bottom-color: var(--gold); color: var(--gold-2); }
+
+  /* ─── HERO ─── */
+  .hero {
+    background: var(--hero-bg);
+    color: var(--nav-fg);
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 55% at 50% 100%, rgba(134,100,17,.22) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-escudo {
+    width: 70px; height: 70px;
+    margin: 0 auto 1.6rem;
+    display: block;
+  }
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-2);
+    margin-bottom: 1.1rem;
+  }
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.6rem);
+    font-weight: 700; line-height: 1.12;
+    text-wrap: balance;
+    color: #F0E8D4;
+    margin-bottom: 0.4rem;
+  }
+  .hero-subtitle {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(0.95rem, 2vw, 1.2rem);
+    font-style: italic; font-weight: 400;
+    color: var(--gold-2);
+    margin-bottom: 1.8rem;
+  }
+  .hero-desc {
+    font-size: 0.98rem;
+    max-width: 56ch; margin: 0 auto 3rem;
+    opacity: 0.65; line-height: 1.85;
+  }
+  .hero-stats {
+    display: flex; justify-content: center;
+    gap: 3.5rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid rgba(176,140,32,.3);
+  }
+  .stat-num {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 2.1rem; font-weight: 700;
+    color: var(--gold-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.14em;
+    text-transform: uppercase; opacity: 0.5;
+  }
+
+  /* ─── SECTION SHARED ─── */
+  .section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
+  .s-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+  .s-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.7rem, 3vw, 2.4rem);
+    font-weight: 700; line-height: 1.18;
+    text-wrap: balance; color: var(--text);
+    margin-bottom: 0.9rem;
+  }
+  .s-lead {
+    font-size: 1.02rem; max-width: 62ch;
+    color: var(--text-2); line-height: 1.8;
+    margin-bottom: 3rem;
+  }
+  hr { border: none; border-top: 1px solid var(--div); margin: 0; }
+  .ornament {
+    text-align: center; padding: 1.4rem 0;
+    color: var(--gold-2); opacity: 0.6;
+    font-size: 1.1rem; letter-spacing: 0.5em;
+  }
+
+  /* ─── HISTORIA TIMELINE ─── */
+  .timeline {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    column-gap: 2rem;
+    max-width: 740px;
+  }
+  .tl-year {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.76rem; font-weight: 500;
+    color: var(--gold); text-align: right;
+    padding-top: .22rem;
+    position: relative;
+  }
+  .tl-year::after {
+    content: '';
+    position: absolute; right: -2.55rem; top: .55rem;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 1px var(--gold);
+  }
+  .tl-entry {
+    border-left: 1px solid var(--border);
+    padding: 0 0 2.5rem 2rem;
+  }
+  .tl-entry:last-child { border-left-color: transparent; padding-bottom: 0; }
+  .tl-ev {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem; font-weight: 600;
+    color: var(--text); margin-bottom: .3rem;
+  }
+  .tl-detail { font-size: .9rem; color: var(--text-2); line-height: 1.72; }
+
+  /* ─── PATRIMONIO CARDS ─── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.4rem;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .card:hover { box-shadow: 0 10px 28px rgba(0,0,0,.13); transform: translateY(-2px); }
+  .card-img {
+    width: 100%; aspect-ratio: 4/3;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .card-img svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .card-body { padding: 1.2rem 1.4rem 1.5rem; flex: 1; display: flex; flex-direction: column; }
+  .card-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: .6rem; letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: .18rem .5rem; border-radius: 2px;
+    background: var(--gold-pale); color: var(--gold);
+    margin-bottom: .65rem; align-self: flex-start;
+  }
+  .card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem; font-weight: 600;
+    color: var(--text); margin-bottom: .4rem;
+    text-wrap: balance;
+  }
+  .card-desc { font-size: .86rem; color: var(--text-2); line-height: 1.65; flex: 1; }
+  .card-footer {
+    display: flex; gap: 1.2rem; margin-top: 1rem;
+    padding-top: .75rem; border-top: 1px solid var(--div);
+  }
+  .card-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: .66rem; color: var(--text-3);
+  }
+  .card-meta b { color: var(--text-2); font-weight: 500; }
+
+  /* ─── MAP SECTION ─── */
+  .map-section {
+    background: var(--surface);
+    border-top: 1px solid var(--div);
+    border-bottom: 1px solid var(--div);
+    padding: 4rem 2rem;
+  }
+  .map-inner { max-width: 1100px; margin: 0 auto; }
+  .map-layout {
+    display: grid;
+    grid-template-columns: 1fr 310px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .map-wrap {
+    border: 2px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+    line-height: 0;
+    cursor: grab;
+    user-select: none;
+  }
+  .map-wrap:active { cursor: grabbing; }
+  #mapCanvas { display: block; width: 100%; height: auto; }
+  .map-ctrls {
+    position: absolute; top: 12px; left: 12px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .map-btn {
+    width: 30px; height: 30px;
+    border: 1px solid var(--border); border-radius: 2px;
+    background: var(--bg); color: var(--text);
+    font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    transition: background .1s;
+    line-height: 1;
+  }
+  .map-btn:hover { background: var(--surface-2); }
+  /* Tile switcher buttons */
+  .map-tile-btn {
+    padding: .35rem .85rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-family: 'DM Mono', monospace;
+    font-size: .65rem;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .map-tile-btn:hover { background: var(--surface-3, #2a2a2a); color: var(--text); }
+  .map-tile-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  /* Map list & detail */
+  .map-list-item {
+    display: flex; align-items: flex-start; gap: .6rem;
+    padding: .65rem .8rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background .12s;
+    font-family: 'DM Mono', monospace;
+  }
+  .map-list-item:hover { background: var(--surface-2); }
+  .map-list-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 3px;
+  }
+  .map-list-name {
+    font-size: .72rem; color: var(--text); line-height: 1.35;
+    font-family: 'Playfair Display', serif;
+  }
+  .map-list-meta {
+    font-size: .6rem; color: var(--text-3); margin-top: 2px;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  .map-detail-row {
+    display: grid; grid-template-columns: 90px 1fr; gap: .3rem;
+    font-size: .72rem; border-bottom: 1px solid var(--border); padding-bottom: .3rem;
+  }
+  .map-detail-row span:first-child {
+    color: var(--text-3); font-family: 'DM Mono', monospace;
+    font-size: .62rem; text-transform: uppercase; letter-spacing: .06em;
+    padding-top: 1px;
+  }
+  .map-hint {
+    position: absolute; bottom: 10px; right: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: .6rem; color: var(--text-3);
+    opacity: .7; letter-spacing: .06em;
+  }
+
+  /* Site panel */
+  .site-panel {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 1.5rem;
+    min-height: 360px;
+  }
+  .panel-empty {
+    height: 100%;
+    min-height: 320px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; gap: .7rem;
+    color: var(--text-3);
+  }
+  .panel-empty svg { opacity: .25; }
+  .panel-empty p { font-size: .82rem; max-width: 22ch; line-height: 1.6; }
+  .panel-content { display: none; }
+  .panel-content.active { display: block; }
+  .panel-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: .6rem; letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: .18rem .5rem; border-radius: 2px;
+    background: var(--gold-pale); color: var(--gold);
+    margin-bottom: .7rem;
+  }
+  .panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; font-weight: 700;
+    color: var(--text); margin-bottom: .7rem;
+    text-wrap: balance;
+  }
+  .panel-desc {
+    font-size: .86rem; color: var(--text-2);
+    line-height: 1.72; margin-bottom: 1.2rem;
+  }
+  .panel-info {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: .8rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--div);
+  }
+  .pi-label {
+    font-family: 'DM Mono', monospace;
+    font-size: .6rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-3);
+    margin-bottom: .18rem;
+  }
+  .pi-value { font-size: .84rem; color: var(--text-2); font-weight: 500; }
+  .panel-ord {
+    margin-top: 1rem;
+    padding: .8rem 1rem;
+    background: var(--surface);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 2px 2px 0;
+    font-size: .82rem; color: var(--text-2);
+  }
+  .panel-ord strong {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: .62rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: .25rem;
+  }
+
+  /* ─── ORDENANZAS ─── */
+  .ord-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  thead th {
+    background: var(--surface-2);
+    font-family: 'DM Mono', monospace;
+    font-size: .66rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-2);
+    text-align: left; padding: .75rem 1.1rem;
+    border-bottom: 1px solid var(--border); font-weight: 500;
+  }
+  tbody tr { border-bottom: 1px solid var(--div); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface); }
+  td { padding: .9rem 1.1rem; color: var(--text-2); vertical-align: top; }
+  .td-num {
+    font-family: 'DM Mono', monospace;
+    font-size: .78rem; color: var(--gold); font-weight: 500;
+    white-space: nowrap;
+  }
+  .td-title { font-weight: 600; color: var(--text); line-height: 1.45; }
+  .td-sub { font-size: .8rem; color: var(--text-3); margin-top: .18rem; line-height: 1.5; }
+  .td-status {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: .6rem; letter-spacing: .06em;
+    padding: .15rem .45rem; border-radius: 2px;
+    background: rgba(48,110,48,.12); color: #2E6E28;
+    white-space: nowrap;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .td-status { background: rgba(80,160,70,.15); color: #6EC060; }
+  }
+  :root[data-theme="dark"] .td-status { background: rgba(80,160,70,.15); color: #6EC060; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--nav-bg);
+    color: var(--nav-fg);
+    padding: 3.5rem 2rem 2rem;
+    border-top: 2px solid var(--gold);
+  }
+  .foot-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 2.5rem;
+  }
+  .foot-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem; font-weight: 700;
+    color: var(--gold-2); margin-bottom: .6rem;
+  }
+  .foot-desc { font-size: .82rem; opacity: .55; line-height: 1.75; max-width: 34ch; }
+  .foot-col-title {
+    font-family: 'DM Mono', monospace;
+    font-size: .64rem; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--gold-2);
+    margin-bottom: .9rem;
+  }
+  .foot-list { list-style: none; display: flex; flex-direction: column; gap: .45rem; }
+  .foot-list li { font-size: .82rem; opacity: .6; }
+  .foot-list a { color: var(--nav-fg); text-decoration: none; opacity: 1; transition: opacity .15s; }
+  .foot-list a:hover { opacity: 1; color: var(--gold-2); }
+  .foot-bottom {
+    max-width: 1100px; margin: 2rem auto 0;
+    padding-top: 1.4rem;
+    border-top: 1px solid rgba(176,140,32,.2);
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: .62rem; opacity: .35; letter-spacing: .04em;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 860px) {
+    .map-layout { grid-template-columns: 1fr; }
+    .foot-inner { grid-template-columns: 1fr 1fr; }
+    .nav-links { display: none; }
+  }
+  @media (max-width: 580px) {
+    .hero-stats { gap: 1.5rem; }
+    .timeline { grid-template-columns: 56px 1fr; column-gap: 1.2rem; }
+    .foot-inner { grid-template-columns: 1fr; }
+    .panel-info { grid-template-columns: 1fr; }
+    .foot-bottom { flex-direction: column; gap: .5rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand">Municipio · San Andrés de Giles</span>
+  <ul class="nav-links">
+    <li><a href="#historia">Historia</a></li>
+    <li><a href="#patrimonio">Patrimonio</a></li>
+    <li><a href="#mapa">Mapa</a></li>
+    <li><a href="#ordenanzas">Ordenanzas</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <!-- Escudo estilizado SVG -->
+  <svg class="hero-escudo" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M35 4 L62 16 L62 42 Q62 56 35 67 Q8 56 8 42 L8 16 Z" fill="rgba(176,140,32,.12)" stroke="#B38C20" stroke-width="1.5"/>
+    <path d="M35 12 L55 21 L55 41 Q55 52 35 61 Q15 52 15 41 L15 21 Z" fill="none" stroke="#B38C20" stroke-width="0.8" stroke-dasharray="2 2"/>
+    <text x="35" y="40" text-anchor="middle" font-family="Playfair Display, serif" font-size="20" fill="#C49B28" font-weight="700">G</text>
+    <path d="M24 44 L46 44" stroke="#B38C20" stroke-width="0.8"/>
+    <path d="M28 48 L42 48" stroke="#B38C20" stroke-width="0.8"/>
+  </svg>
+
+  <p class="hero-eyebrow">Municipio de San Andrés de Giles · Provincia de Buenos Aires</p>
+  <h1 class="hero-title">Registro Patrimonial Municipal</h1>
+  <p class="hero-subtitle">Comisión Municipal Asesora de Patrimonio Cultural — CMAPCSAG</p>
+  <p class="hero-desc">Inventario Consolidado del Patrimonio Cultural y Natural del Partido de San Andrés de Giles. Normativa marco: Ordenanza Nº 2182/2019. Versión oficial actualizada v2.0 · 1988–2024.</p>
+
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num">86</span><span class="stat-lbl">Bienes inventariados</span></div>
+    <div class="stat"><span class="stat-num">79</span><span class="stat-lbl">Registro definitivo</span></div>
+    <div class="stat"><span class="stat-num">1988</span><span class="stat-lbl">Desde la primera ordenanza</span></div>
+  </div>
+</header>
+
+<hr><div class="ornament">✦ &nbsp; ✦ &nbsp; ✦</div><hr>
+
+<!-- HISTORIA -->
+<section id="historia" class="section">
+  <p class="s-eyebrow">Historia del Partido</p>
+  <h2 class="s-title">Reseña Histórica</h2>
+  <p class="s-lead">El partido de San Andrés de Giles conserva una identidad cultural forjada durante más de un siglo y medio de historia pampeana, con raíces en la colonización española y el proceso de organización nacional.</p>
+
+  <div class="timeline">
+
+    <div class="tl-year">1832</div>
+    <div class="tl-entry">
+      <div class="tl-ev">Erección del Templo Parroquial San Andrés</div>
+      <div class="tl-detail">El Templo Parroquial San Andrés, erigido en 1832 en la esquina de San Martín y Belgrano, es uno de los bienes más antiguos del partido inscriptos en el Registro. Hoy declarado bajo Ordenanza Nº 83/1988, constituye el hito religioso fundacional de la comunidad y fue uno de los primeros edificios del trazado urbano.</div>
+    </div>
+
+    <div class="tl-year">1988</div>
+    <div class="tl-entry">
+      <div class="tl-ev">Primeras ordenanzas de protección patrimonial</div>
+      <div class="tl-detail">Las Ordenanzas Nº 83/88 y Nº 119/88 inauguran la política patrimonial municipal, inscribiendo los primeros 60 bienes: la Plaza San Martín, el Palacio Municipal, la Estación Giles del F.C. Urquiza, la Posta de Figueroa, el Cementerio Sud, la Casa Cámpora y un amplio conjunto de escuelas, capillas, estancias y monumentos del partido.</div>
+    </div>
+
+    <div class="tl-year">1999–2014</div>
+    <div class="tl-entry">
+      <div class="tl-ev">Incorporaciones sucesivas al Registro</div>
+      <div class="tl-detail">Sucesivas ordenanzas amplían el inventario: la Escuela Nº 7 de Tuyutí (Ord. 568/99), el Almacén de Tejo (Ord. 688/01), la Sociedad Española de Socorros Mutuos (Ord. 883/03), la Farmacia Novelli y el Chanta Cuatro (Ord. 1064/05), el Mural de Adobe de Azcuénaga (Ord. 929/04) y el Edificio de la Escuela Normal (Ord. 1787/14), consolidando un corpus patrimonial de singular diversidad tipológica.</div>
+    </div>
+
+    <div class="tl-year">2019</div>
+    <div class="tl-entry">
+      <div class="tl-ev">Ordenanza Nº 2182/2019 — Marco normativo integral</div>
+      <div class="tl-detail">La sanción de la Ordenanza Nº 2182/2019 constituye el hito más importante de la gestión patrimonial contemporánea del partido: crea la Comisión Municipal Asesora de Patrimonio Cultural (CMAPCSAG), establece las categorías de valor (Artístico-Arquitectónico, Histórico-Simbólico, Urbanístico-Ambiental, Inmaterial, Natural), define los Registros Preventivo y Definitivo, y fija el procedimiento de declaratoria con mayoría de dos tercios.</div>
+    </div>
+
+    <div class="tl-year">2021</div>
+    <div class="tl-entry">
+      <div class="tl-ev">Decreto PEN Nº 616/2021 — Monumento Histórico Nacional</div>
+      <div class="tl-detail">La Posta de Figueroa (Estancia La Merced), ya protegida por la Ordenanza Municipal Nº 49/88 y la Ley Provincial 10965, es declarada Monumento Histórico Nacional por el Poder Ejecutivo Nacional mediante el Decreto Nº 616/2021. Es el único bien del partido con ese máximo nivel de protección nacional. Ese mismo año se sanciona una serie de ordenanzas que protegen los Murales de Walter Leonelli, el Ex Club Cutillas, el Sepulcro del Dr. Cámpora y el Bar El Viejo Tropezón.</div>
+    </div>
+
+    <div class="tl-year">2022–2024</div>
+    <div class="tl-entry">
+      <div class="tl-ev">Consolidación y ampliación del inventario — v2.0</div>
+      <div class="tl-detail">Las Ordenanzas Nº 2461/22 y Nº 2526/22 incorporan la Ex Casa Miguel Peláez y el Entorno del Colegio Nacional-Plaza Saraví. En 2023, la Resolución HCD Nº 11/23 reconoce la Estación de Servicio de Villa Ruiz como Declaración de Interés. El Decreto Nº 1125/2024 otorga exención de tasas municipales por mérito patrimonial. El inventario consolidado v2.0, que es el presente documento, suma 86 bienes entre Registros Definitivos, Preventivos y declaraciones de distinta jerarquía.</div>
+    </div>
+
+  </div>
+</section>
+
+<hr>
+
+<!-- PATRIMONIO -->
+<section id="patrimonio" class="section">
+  <p class="s-eyebrow">Inventario de Bienes</p>
+  <h2 class="s-title">Sitios de Valor Patrimonial</h2>
+  <p class="s-lead">Selección de bienes inscriptos en el Registro Patrimonial Municipal, ordenados por categoría tipológica. Cada bien cuenta con ficha de identificación, fecha de reconocimiento y ordenanza declaratoria.</p>
+
+  <div class="cards-grid">
+
+    <!-- Card 1: Plaza San Martín -->
+    <article class="card">
+      <div class="card-img" style="background:linear-gradient(160deg,#C8D8B0 0%,#A8C490 100%)">
+        <svg viewBox="0 0 360 270" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="0" y="0" width="360" height="270" fill="none"/>
+          <rect x="60" y="180" width="240" height="60" rx="2" fill="rgba(255,255,255,.12)"/>
+          <line x1="180" y1="100" x2="180" y2="240" stroke="rgba(255,255,255,.5)" stroke-width="8" stroke-linecap="round"/>
+          <line x1="80" y1="180" x2="280" y2="180" stroke="rgba(255,255,255,.5)" stroke-width="8" stroke-linecap="round"/>
+          <circle cx="120" cy="140" r="28" fill="rgba(60,120,40,.55)"/>
+          <circle cx="240" cy="140" r="28" fill="rgba(60,120,40,.55)"/>
+          <circle cx="120" cy="220" r="22" fill="rgba(60,120,40,.45)"/>
+          <circle cx="240" cy="220" r="22" fill="rgba(60,120,40,.45)"/>
+          <polygon points="180,70 190,160 170,160" fill="rgba(255,255,255,.7)"/>
+          <rect x="168" y="158" width="24" height="10" rx="1" fill="rgba(255,255,255,.7)"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <span class="card-badge">Histórico · Urbanístico</span>
+        <h3 class="card-name">Plaza San Martín</h3>
+        <p class="card-desc">Espacio cívico fundacional del partido. Declarada en la Ordenanza Nº 83/1988 como bien Histórico-Simbólico y Urbanístico-Ambiental. Entorno de los principales edificios institucionales, religiosos y culturales del municipio.</p>
+        <div class="card-footer">
+          <div class="card-meta">Norma: <b>Ord. 83/1988</b></div>
+          <div class="card-meta">Reg.: <b>Definitivo</b></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 2: Templo Parroquial -->
+    <article class="card">
+      <div class="card-img" style="background:linear-gradient(160deg,#E4D8C4 0%,#D4C4A8 100%)">
+        <svg viewBox="0 0 360 270" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="90" y="130" width="180" height="110" fill="rgba(255,255,255,.5)"/>
+          <polygon points="80,130 280,130 260,105 100,105" fill="rgba(200,180,150,.7)"/>
+          <rect x="148" y="50" width="64" height="90" fill="rgba(255,255,255,.55)"/>
+          <polygon points="144,50 216,50 180,18" fill="rgba(180,160,130,.8)"/>
+          <rect x="177" y="6" width="6" height="18" fill="rgba(160,130,90,.9)"/>
+          <rect x="170" y="12" width="20" height="5" fill="rgba(160,130,90,.9)"/>
+          <path d="M168 240 L168 200 Q180 188 192 200 L192 240" fill="rgba(130,100,60,.3)"/>
+          <ellipse cx="130" cy="170" rx="12" ry="16" fill="rgba(130,100,60,.2)"/>
+          <ellipse cx="230" cy="170" rx="12" ry="16" fill="rgba(130,100,60,.2)"/>
+          <ellipse cx="180" cy="88" rx="10" ry="14" fill="rgba(130,100,60,.2)"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <span class="card-badge">Artístico · Religioso</span>
+        <h3 class="card-name">Templo Parroquial San Andrés</h3>
+        <p class="card-desc">Erigido en 1832, es el bien patrimonial más antiguo inscripto en el Registro. Ubicado en San Martín y Belgrano, constituye el templo matriz del partido y un hito arquitectónico irrenunciable del paisaje urbano histórico. Ord. Nº 83/1988.</p>
+        <div class="card-footer">
+          <div class="card-meta">Año: <b>1832</b></div>
+          <div class="card-meta">Reg.: <b>Definitivo</b></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 3: Palacio Municipal -->
+    <article class="card">
+      <div class="card-img" style="background:linear-gradient(160deg,#D4CCC0 0%,#C4BAB0 100%)">
+        <svg viewBox="0 0 360 270" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="50" y="230" width="260" height="10" rx="1" fill="rgba(255,255,255,.4)"/>
+          <rect x="60" y="220" width="240" height="12" rx="1" fill="rgba(255,255,255,.35)"/>
+          <rect x="70" y="130" width="220" height="92" fill="rgba(255,255,255,.45)"/>
+          <polygon points="60,130 300,130 270,96 90,96" fill="rgba(200,190,180,.7)"/>
+          <polygon points="140,130 220,130 180,108" fill="rgba(180,170,160,.5)"/>
+          <rect x="95"  y="130" width="14" height="92" rx="3" fill="rgba(255,255,255,.6)"/>
+          <rect x="130" y="130" width="14" height="92" rx="3" fill="rgba(255,255,255,.6)"/>
+          <rect x="165" y="130" width="14" height="92" rx="3" fill="rgba(255,255,255,.6)"/>
+          <rect x="200" y="130" width="14" height="92" rx="3" fill="rgba(255,255,255,.6)"/>
+          <rect x="235" y="130" width="14" height="92" rx="3" fill="rgba(255,255,255,.6)"/>
+          <rect x="270" y="130" width="14" height="92" rx="3" fill="rgba(255,255,255,.6)"/>
+          <rect x="162" y="185" width="36" height="37" rx="1" fill="rgba(100,80,60,.35)"/>
+          <rect x="178" y="55" width="4" height="48" fill="rgba(140,120,90,.6)"/>
+          <rect x="182" y="55" width="28" height="18" rx="1" fill="rgba(60,120,200,.5)"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <span class="card-badge">Artístico · Institucional</span>
+        <h3 class="card-name">Intendencia Municipal</h3>
+        <p class="card-desc">Sede del gobierno municipal, ubicada en Moreno entre Rivadavia y San Martín. Inscripta en el Registro como bien Artístico-Arquitectónico e Histórico-Simbólico desde la Ordenanza Nº 83/1988. Alberga además la Pinacoteca Comunal y el Mural del Pbro. Vicente Piñero.</p>
+        <div class="card-footer">
+          <div class="card-meta">Norma: <b>Ord. 83/1988</b></div>
+          <div class="card-meta">Reg.: <b>Definitivo</b></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 4: Estacion Giles -->
+    <article class="card">
+      <div class="card-img" style="background:linear-gradient(160deg,#C8C0B4 0%,#B8AFA4 100%)">
+        <svg viewBox="0 0 360 270" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="20" y="205" width="320" height="20" rx="1" fill="rgba(180,160,140,.5)"/>
+          <rect x="80" y="130" width="200" height="78" fill="rgba(255,255,255,.45)"/>
+          <rect x="60" y="118" width="240" height="18" rx="2" fill="rgba(180,150,110,.7)"/>
+          <polygon points="56,118 304,118 290,96 70,96" fill="rgba(160,130,100,.65)"/>
+          <rect x="240" y="72" width="20" height="30" fill="rgba(150,120,90,.6)"/>
+          <rect x="236" y="68" width="28" height="6" rx="1" fill="rgba(130,100,70,.7)"/>
+          <rect x="100" y="145" width="35" height="45" rx="2" fill="rgba(100,140,180,.3)"/>
+          <rect x="165" y="145" width="35" height="45" rx="2" fill="rgba(100,140,180,.3)"/>
+          <rect x="230" y="145" width="35" height="45" rx="2" fill="rgba(100,140,180,.3)"/>
+          <line x1="20" y1="225" x2="340" y2="225" stroke="rgba(80,60,40,.5)" stroke-width="3"/>
+          <line x1="20" y1="215" x2="340" y2="215" stroke="rgba(80,60,40,.5)" stroke-width="3"/>
+          <line x1="40"  y1="212" x2="40"  y2="228" stroke="rgba(80,60,40,.35)" stroke-width="2"/>
+          <line x1="80"  y1="212" x2="80"  y2="228" stroke="rgba(80,60,40,.35)" stroke-width="2"/>
+          <line x1="120" y1="212" x2="120" y2="228" stroke="rgba(80,60,40,.35)" stroke-width="2"/>
+          <line x1="160" y1="212" x2="160" y2="228" stroke="rgba(80,60,40,.35)" stroke-width="2"/>
+          <line x1="200" y1="212" x2="200" y2="228" stroke="rgba(80,60,40,.35)" stroke-width="2"/>
+          <line x1="240" y1="212" x2="240" y2="228" stroke="rgba(80,60,40,.35)" stroke-width="2"/>
+          <line x1="280" y1="212" x2="280" y2="228" stroke="rgba(80,60,40,.35)" stroke-width="2"/>
+          <line x1="320" y1="212" x2="320" y2="228" stroke="rgba(80,60,40,.35)" stroke-width="2"/>
+          <rect x="130" y="100" width="100" height="22" rx="2" fill="rgba(255,255,255,.5)"/>
+          <text x="180" y="115" text-anchor="middle" font-family="serif" font-size="10" fill="rgba(60,40,20,.7)">F.C. URQUIZA · GILES</text>
+        </svg>
+      </div>
+      <div class="card-body">
+        <span class="card-badge">Urbanístico · Industrial</span>
+        <h3 class="card-name">Estación Giles (F.C. Urquiza)</h3>
+        <p class="card-desc">Ubicada en Morgan y España. Declarada bien Urbanístico-Ambiental e Histórico-Simbólico por Ordenanza Nº 119/1988. El conjunto comprende edificio, andén y parque ferroviario. Testimonio del rol transformador del ferrocarril en la economía del partido.</p>
+        <div class="card-footer">
+          <div class="card-meta">Norma: <b>Ord. 119/1988</b></div>
+          <div class="card-meta">Reg.: <b>Definitivo</b></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 5: Posta de Figueroa -->
+    <article class="card">
+      <div class="card-img" style="background:linear-gradient(160deg,#D4C8B0 0%,#C4B49A 100%)">
+        <svg viewBox="0 0 360 270" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Rural landscape -->
+          <rect x="0" y="190" width="360" height="80" fill="rgba(100,140,70,.22)"/>
+          <!-- Main house -->
+          <rect x="70" y="120" width="180" height="90" fill="rgba(255,255,255,.45)"/>
+          <!-- Roof -->
+          <polygon points="60,120 260,120 240,90 80,90" fill="rgba(180,140,90,.7)"/>
+          <!-- Chimney -->
+          <rect x="190" y="72" width="16" height="24" fill="rgba(150,110,70,.65)"/>
+          <!-- Corridor / galería -->
+          <rect x="250" y="130" width="60" height="80" fill="rgba(200,170,120,.3)"/>
+          <line x1="260" y1="130" x2="260" y2="210" stroke="rgba(180,140,90,.5)" stroke-width="8" stroke-linecap="round"/>
+          <line x1="285" y1="130" x2="285" y2="210" stroke="rgba(180,140,90,.5)" stroke-width="8" stroke-linecap="round"/>
+          <line x1="310" y1="130" x2="310" y2="210" stroke="rgba(180,140,90,.5)" stroke-width="8" stroke-linecap="round"/>
+          <!-- Windows -->
+          <rect x="90"  y="140" width="40" height="40" rx="2" fill="rgba(100,130,160,.25)"/>
+          <rect x="150" y="140" width="40" height="40" rx="2" fill="rgba(100,130,160,.25)"/>
+          <rect x="210" y="140" width="30" height="35" rx="1" fill="rgba(100,130,160,.25)"/>
+          <!-- Trees -->
+          <circle cx="42"  cy="155" r="30" fill="rgba(50,100,40,.45)"/>
+          <circle cx="330" cy="165" r="24" fill="rgba(50,100,40,.38)"/>
+          <!-- MHN ribbon -->
+          <rect x="50" y="58" width="170" height="22" rx="3" fill="rgba(140,100,20,.55)"/>
+          <text x="135" y="73" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="rgba(255,240,200,.9)" letter-spacing="1">MONUMENTO HISTÓRICO NAC.</text>
+        </svg>
+      </div>
+      <div class="card-body">
+        <span class="card-badge">🏛 M.H. Nacional</span>
+        <h3 class="card-name">Posta de Figueroa</h3>
+        <p class="card-desc">Estancia La Merced, Cuartel VII. Máxima categoría de protección patrimonial: Monumento Histórico Nacional por Decreto del PEN Nº 616/2021. También declarada por Ley Provincial Nº 10965 y Ordenanza Municipal Nº 49/1988. Placa oficial instalada. Único MHN del partido.</p>
+        <div class="card-footer">
+          <div class="card-meta">Dec. PEN: <b>616/2021</b></div>
+          <div class="card-meta">Reg.: <b>MHN</b></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 6: Farmacia Novelli -->
+    <article class="card">
+      <div class="card-img" style="background:linear-gradient(160deg,#D8D0C4 0%,#C8C0B4 100%)">
+        <svg viewBox="0 0 360 270" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="60" y="110" width="240" height="130" fill="rgba(255,255,255,.45)"/>
+          <rect x="55" y="100" width="250" height="16" rx="1" fill="rgba(220,205,185,.7)"/>
+          <rect x="55" y="88" width="250" height="16" rx="1" fill="rgba(200,185,165,.6)"/>
+          <rect x="130" y="155" width="100" height="55" rx="1" fill="rgba(200,185,165,.35)"/>
+          <rect x="125" y="150" width="110" height="8" rx="1" fill="rgba(200,185,165,.55)"/>
+          <rect x="80" y="120" width="45" height="50" rx="3" fill="rgba(100,140,180,.2)"/>
+          <path d="M80,145 Q102,130 125,145" fill="rgba(200,185,165,.4)" stroke="none"/>
+          <rect x="235" y="120" width="45" height="50" rx="3" fill="rgba(100,140,180,.2)"/>
+          <path d="M235,145 Q257,130 280,145" fill="rgba(200,185,165,.4)" stroke="none"/>
+          <rect x="153" y="180" width="54" height="60" rx="2" fill="rgba(80,60,40,.3)"/>
+          <path d="M150,200 Q180,180 210,200" fill="rgba(100,80,60,.25)" stroke="none"/>
+          <!-- Cruz farmacéutica -->
+          <rect x="172" y="58" width="16" height="36" rx="2" fill="rgba(40,130,80,.5)"/>
+          <rect x="160" y="70" width="40" height="12" rx="2" fill="rgba(40,130,80,.5)"/>
+          <rect x="80" y="88" width="200" height="14" rx="1" fill="rgba(180,150,100,.3)"/>
+          <text x="180" y="99" text-anchor="middle" font-family="serif" font-size="9" fill="rgba(60,40,20,.65)">FARMACIA NOVELLI — Rivadavia y Alsina</text>
+        </svg>
+      </div>
+      <div class="card-body">
+        <span class="card-badge">Artístico · Comercial</span>
+        <h3 class="card-name">Farmacia Novelli</h3>
+        <p class="card-desc">Tradicional farmacia del casco histórico, ubicada en Rivadavia y Alsina. Inscripta como bien Artístico-Arquitectónico por Ordenanza Nº 1064/2005 (Decreto Nº 1497). Ejemplo paradigmático de arquitectura comercial histórica de gran valor identitario para el partido.</p>
+        <div class="card-footer">
+          <div class="card-meta">Norma: <b>Ord. 1064/2005</b></div>
+          <div class="card-meta">Reg.: <b>Definitivo</b></div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<hr>
+
+<!-- MAPA -->
+<div class="map-section" id="mapa">
+  <div class="map-inner">
+    <div class="map-header" style="margin-bottom:1.5rem;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+      <div>
+        <p class="s-eyebrow">Localización Patrimonial</p>
+        <h2 class="s-title" style="margin-bottom:.3rem">Mapa Interactivo del Registro</h2>
+        <p style="font-size:.82rem;color:var(--text-3);font-family:'DM Mono',monospace;letter-spacing:.05em">Clic en marcador → ficha completa · Arrastre para mover · Scroll para zoom</p>
+      </div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
+        <button class="map-tile-btn active" onclick="switchMapTile('satelite',this)">Satélite</button>
+        <button class="map-tile-btn" onclick="switchMapTile('hibrido',this)">Híbrido</button>
+        <button class="map-tile-btn" onclick="switchMapTile('osm',this)">Callejero</button>
+        <button class="map-tile-btn" onclick="switchMapTile('topo',this)">Topográfico</button>
+        <label class="map-tile-btn" style="cursor:pointer" title="Cargar GeoJSON (parcelario u otras capas)">
+          ⊕ GeoJSON
+          <input type="file" id="gjInput" accept=".geojson,.json" multiple style="display:none" onchange="">
+        </label>
+      </div>
+    </div>
+
+    <!-- Contenedor mapa + panel -->
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:0;border:1px solid var(--border);border-radius:2px;overflow:hidden;height:72vh;min-height:460px">
+
+      <!-- Mapa Leaflet -->
+      <div style="position:relative;height:100%">
+        <div id="leafletMap" style="height:100%;width:100%"></div>
+        <!-- Leyenda flotante -->
+        <div id="mapLegend" style="
+          position:absolute;bottom:1.5rem;left:1rem;z-index:800;
+          background:rgba(245,240,232,.95);border:1px solid var(--border);
+          border-radius:3px;padding:.6rem .8rem;font-size:.73rem;
+          box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:170px">
+          <div style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem">Categorías de Valor</div>
+          <div style="display:flex;flex-direction:column;gap:.22rem">
+            <div style="display:flex;align-items:center;gap:.4rem"><div style="width:10px;height:10px;border-radius:50%;background:#876411;border:1.5px solid rgba(0,0,0,.15);flex-shrink:0"></div><span style="color:var(--text-2)">Artístico-Arquitectónico</span></div>
+            <div style="display:flex;align-items:center;gap:.4rem"><div style="width:10px;height:10px;border-radius:50%;background:#7A3622;border:1.5px solid rgba(0,0,0,.15);flex-shrink:0"></div><span style="color:var(--text-2)">Histórico-Simbólico</span></div>
+            <div style="display:flex;align-items:center;gap:.4rem"><div style="width:10px;height:10px;border-radius:50%;background:#3A6B35;border:1.5px solid rgba(0,0,0,.15);flex-shrink:0"></div><span style="color:var(--text-2)">Urbanístico-Ambiental</span></div>
+            <div style="display:flex;align-items:center;gap:.4rem"><div style="width:10px;height:10px;border-radius:50%;background:#4A4A8B;border:1.5px solid rgba(0,0,0,.15);flex-shrink:0"></div><span style="color:var(--text-2)">Inmaterial</span></div>
+            <div style="display:flex;align-items:center;gap:.4rem"><div style="width:10px;height:10px;border-radius:50%;background:#1A6B5A;border:1.5px solid rgba(0,0,0,.15);flex-shrink:0"></div><span style="color:var(--text-2)">Natural</span></div>
+          </div>
+        </div>
+        <!-- Aviso coord aprox -->
+        <div style="position:absolute;bottom:1.5rem;right:.5rem;z-index:800;font-family:'DM Mono',monospace;font-size:.6rem;color:rgba(40,25,14,.5);background:rgba(245,240,232,.85);padding:.25rem .45rem;border-radius:2px">
+          Coord. aproximadas · Cargar GeoJSON para precisión catastral
+        </div>
+      </div>
+
+      <!-- Panel lateral del mapa -->
+      <div id="mapSidePanel" style="
+        background:var(--surface);
+        border-left:1px solid var(--border);
+        display:flex;flex-direction:column;
+        overflow:hidden;height:100%">
+
+        <!-- Header panel -->
+        <div style="background:var(--nav-bg);padding:.75rem .85rem;flex-shrink:0">
+          <div style="font-family:'Playfair Display',serif;font-size:.9rem;font-weight:600;color:var(--nav-fg);line-height:1.3">Catálogo de Bienes</div>
+          <div style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-pale);opacity:.7;margin-top:.15rem">86 bienes · CMAPCSAG</div>
+        </div>
+
+        <!-- Buscador -->
+        <div style="padding:.5rem .65rem;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0">
+          <input id="mapSearch" type="text" placeholder="Buscar bien patrimonial…"
+            style="width:100%;padding:.35rem .55rem;border:1px solid var(--border);border-radius:2px;background:var(--surface);font-family:'DM Mono',monospace;font-size:.75rem;color:var(--text);outline:none"
+            oninput="filterMapList()">
+        </div>
+
+        <!-- Lista de bienes -->
+        <div id="mapBienesList" style="flex:1;overflow-y:auto;padding:.25rem 0"></div>
+
+        <!-- Ficha detalle -->
+        <div id="mapBienDetail" style="
+          border-top:2px solid var(--gold);
+          background:var(--bg);padding:.85rem;
+          flex-shrink:0;max-height:48%;overflow-y:auto;
+          display:none">
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:.72rem;color:var(--text-3);font-family:'DM Mono',monospace;margin-top:.65rem;letter-spacing:.04em">
+      Imagen satelital: © Esri, USGS, NOAA. Callejero: © OpenStreetMap contributors. Datos del Registro: CMAPCSAG · Ord. 2182/2019.
+    </p>
+  </div>
+</div>
+
+<hr>
+
+<!-- ORDENANZAS -->
+<section id="ordenanzas" class="section">
+  <p class="s-eyebrow">Marco Normativo</p>
+  <h2 class="s-title">Ordenanzas Declaratorias</h2>
+  <p class="s-lead">Conjunto de instrumentos normativos sancionados por el Honorable Concejo Deliberante del Partido de San Andrés de Giles en materia de protección patrimonial.</p>
+
+  <div class="ord-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nº Ordenanza</th>
+          <th>Objeto declarado</th>
+          <th>Año</th>
+          <th>Categoría</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-num">Ord. 83/1988</td>
+          <td>
+            <div class="td-title">Declaración inaugural del Registro Patrimonial</div>
+            <div class="td-sub">Primera ordenanza de protección patrimonial municipal. Inscribe los bienes fundacionales: Plaza San Martín, Templo Parroquial San Andrés, Intendencia Municipal, Estación Giles F.C. Urquiza, Posta de Figueroa, Cementerio Sud, escuelas, capillas y estancias del partido.</div>
+          </td>
+          <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:.8rem">1988</td>
+          <td><span class="card-badge" style="margin:0">Normativa general</span></td>
+          <td><span class="td-status">Vigente</span></td>
+        </tr>
+        <tr>
+          <td class="td-num">Ord. 119/1988</td>
+          <td>
+            <div class="td-title">Ampliación inaugural del Registro Patrimonial</div>
+            <div class="td-sub">Complementa la Ord. 83/88: incorpora el segundo grupo de bienes fundacionales, incluyendo la Casa Cámpora, monumentos, capillas rurales y conjuntos de valor urbanístico-ambiental del partido.</div>
+          </td>
+          <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:.8rem">1988</td>
+          <td><span class="card-badge" style="margin:0">Normativa general</span></td>
+          <td><span class="td-status">Vigente</span></td>
+        </tr>
+        <tr>
+          <td class="td-num">Ord. 568/1999</td>
+          <td>
+            <div class="td-title">Interés Patrimonial: Escuela Nº 7 de Tuyutí</div>
+            <div class="td-sub">Incorporación al Registro del edificio escolar de Tuyutí como bien de valor histórico-social. Primera declaratoria post-inaugural que amplía el corpus patrimonial hacia el interior del partido.</div>
+          </td>
+          <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:.8rem">1999</td>
+          <td><span class="card-badge" style="margin:0">Educativo</span></td>
+          <td><span class="td-status">Vigente</span></td>
+        </tr>
+        <tr>
+          <td class="td-num">Ord. 688/2001</td>
+          <td>
+            <div class="td-title">Interés Patrimonial: Almacén de Tejo</div>
+            <div class="td-sub">Declaración del histórico almacén de campo como bien de valor histórico-social e inmaterial. Testimonio de la sociabilidad rural y las prácticas lúdicas tradicionales del partido.</div>
+          </td>
+          <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:.8rem">2001</td>
+          <td><span class="card-badge" style="margin:0">Inmaterial</span></td>
+          <td><span class="td-status">Vigente</span></td>
+        </tr>
+        <tr>
+          <td class="td-num">Ord. 883/2003</td>
+          <td>
+            <div class="td-title">Interés Patrimonial: Sociedad Española de Socorros Mutuos</div>
+            <div class="td-sub">Reconoce el valor histórico-social del edificio de la colectividad española, símbolo de la inmigración europea que conformó el tejido productivo y cultural del partido.</div>
+          </td>
+          <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:.8rem">2003</td>
+          <td><span class="card-badge" style="margin:0">Social</span></td>
+          <td><span class="td-status">Vigente</span></td>
+        </tr>
+        <tr>
+          <td class="td-num">Ord. 1.064/2005</td>
+          <td>
+            <div class="td-title">Interés Patrimonial: Farmacia Novelli y El Chanta Cuatro</div>
+            <div class="td-sub">Incorpora al Registro la Farmacia Novelli (Rivadavia y Alsina), con mobiliario y equipamiento original de valor excepcional, y el boliche El Chanta Cuatro, bien de valor histórico-social y tipológico.</div>
+          </td>
+          <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:.8rem">2005</td>
+          <td><span class="card-badge" style="margin:0">Comercial</span></td>
+          <td><span class="td-status">Vigente</span></td>
+        </tr>
+        <tr>
+          <td class="td-num">Ord. 1.787/2014</td>
+          <td>
+            <div class="td-title">Interés Patrimonial: Edificio de la Escuela Normal</div>
+            <div class="td-sub">Declaración del edificio de la Escuela Normal como bien de valor artístico-arquitectónico e histórico-simbólico. Consolidación del corpus patrimonial educativo del partido.</div>
+          </td>
+          <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:.8rem">2014</td>
+          <td><span class="card-badge" style="margin:0">Educativo</span></td>
+          <td><span class="td-status">Vigente</span></td>
+        </tr>
+        <tr>
+          <td class="td-num">Ord. 2.182/2019</td>
+          <td>
+            <div class="td-title">Marco normativo integral — Creación de la CMAPCSAG</div>
+            <div class="td-sub">Hito normativo del patrimonio gilense: crea la Comisión Municipal Asesora de Patrimonio Cultural (CMAPCSAG), establece las cinco categorías de valor, los Registros Preventivo y Definitivo, y fija el procedimiento de declaratoria con mayoría de dos tercios del HCD.</div>
+          </td>
+          <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:.8rem">2019</td>
+          <td><span class="card-badge" style="margin:0">Normativa general</span></td>
+          <td><span class="td-status">Vigente</span></td>
+        </tr>
+        <tr>
+          <td class="td-num">Dec. PEN 616/2021</td>
+          <td>
+            <div class="td-title">Monumento Histórico Nacional: Posta de Figueroa</div>
+            <div class="td-sub">Decreto del Poder Ejecutivo Nacional que declara Monumento Histórico Nacional a la Posta de Figueroa (Cuartel VII). Máxima protección del ordenamiento jurídico argentino sobre el patrimonio construido.</div>
+          </td>
+          <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:.8rem">2021</td>
+          <td><span class="card-badge" style="margin:0">MHN</span></td>
+          <td><span class="td-status">Vigente</span></td>
+        </tr>
+        <tr>
+          <td class="td-num">Ords. 2021–2024</td>
+          <td>
+            <div class="td-title">Ampliaciones sucesivas — Versión 2.0 del Registro</div>
+            <div class="td-sub">Ordenanzas Nº 2345/21, 2416/21, 2461/22, 2526/22, Res. HCD 11/23 y Dec. 1125/24 incorporan nuevos bienes al Registro y completan el Catálogo General con 86 bienes inventariados en 7 localidades del partido.</div>
+          </td>
+          <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:.8rem">2021–2024</td>
+          <td><span class="card-badge" style="margin:0">Normativa general</span></td>
+          <td><span class="td-status">Vigente</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr>
+
+<!-- CONTACTO -->
+<section id="contacto" class="section" style="padding-top:3.5rem;padding-bottom:3.5rem">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start">
+    <div>
+      <p class="s-eyebrow">Organismo de Aplicación · Ord. 2182/2019</p>
+      <h2 class="s-title" style="margin-bottom:.4rem">CMAPCSAG</h2>
+      <p style="font-size:.8rem;font-family:'DM Mono',monospace;letter-spacing:.05em;color:var(--text-3);margin-bottom:1rem">Comisión Municipal Asesora de Patrimonio Cultural de San Andrés de Giles</p>
+      <p style="font-size:.95rem;color:var(--text-2);line-height:1.8;margin-bottom:1.5rem">Para consultas sobre el Registro Patrimonial, solicitudes de declaratoria, dictámenes técnicos o proyectos de intervención en bienes protegidos, comuníquese con la CMAPCSAG, organismo de aplicación de la Ordenanza Nº 2182/2019.</p>
+      <div style="display:flex;flex-direction:column;gap:.75rem">
+        <div style="display:flex;gap:.75rem;align-items:flex-start">
+          <span style="font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);padding-top:.12rem;min-width:80px">Dirección</span>
+          <span style="font-size:.9rem;color:var(--text-2)">Av. San Martín s/n · San Andrés de Giles · Pcia. de Buenos Aires</span>
+        </div>
+        <div style="display:flex;gap:.75rem;align-items:center">
+          <span style="font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);min-width:80px">Horario</span>
+          <span style="font-size:.9rem;color:var(--text-2)">Lunes a viernes · 8:00 a 14:00 h</span>
+        </div>
+        <div style="display:flex;gap:.75rem;align-items:center">
+          <span style="font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);min-width:80px">Teléfono</span>
+          <span style="font-size:.9rem;color:var(--text-2)">(02325) 47-XXXX</span>
+        </div>
+        <div style="display:flex;gap:.75rem;align-items:center">
+          <span style="font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);min-width:80px">Web</span>
+          <span style="font-size:.9rem;color:var(--text-2)">www.sandresdegilesmunicipios.gob.ar</span>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:2rem">
+      <p style="font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem">Consulta o solicitud</p>
+      <p style="font-size:.88rem;color:var(--text-3);line-height:1.75;margin-bottom:1.2rem">Para presentar una solicitud de declaratoria patrimonial, el interesado deberá acreditar interés legítimo y acompañar memoria histórica del bien, documentación fotográfica y planimétrica, y dictamen de profesional habilitado.</p>
+      <p style="font-size:.88rem;color:var(--text-3);line-height:1.75">La resolución compete al Consejo Asesor de Patrimonio, cuyo dictamen es elevado al Honorable Concejo Deliberante para su tratamiento legislativo.</p>
+      <div style="margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid var(--div);font-family:'DM Mono',monospace;font-size:.65rem;color:var(--text-3);letter-spacing:.05em">Resolución promedio: 60–90 días hábiles</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-inner">
+    <div>
+      <div class="foot-brand">Municipio de San Andrés de Giles</div>
+      <p class="foot-desc">Registro Patrimonial Municipal · Dirección de Cultura y Patrimonio. Preservación del acervo histórico, arquitectónico y cultural del Partido de San Andrés de Giles.</p>
+    </div>
+    <div>
+      <div class="foot-col-title">Secciones</div>
+      <ul class="foot-list">
+        <li><a href="#historia">Historia del partido</a></li>
+        <li><a href="#patrimonio">Inventario de bienes</a></li>
+        <li><a href="#mapa">Plano catastral</a></li>
+        <li><a href="#ordenanzas">Ordenanzas</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="foot-col-title">Información</div>
+      <ul class="foot-list">
+        <li>Partido de San Andrés de Giles</li>
+        <li>Provincia de Buenos Aires</li>
+        <li>República Argentina</li>
+        <li style="margin-top:.5rem;opacity:.45">Registro Oficial · Uso Público</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2024 · Municipio de San Andrés de Giles · Todos los derechos reservados</span>
+    <span>Registro Patrimonial Municipal · Versión 2.0</span>
+  </div>
+</footer>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ═══════════════════════════════════════
+   MAPA PATRIMONIAL — LEAFLET
+═══════════════════════════════════════ */
+const BIENES_GEOJSON = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455839999999995,-34.445949999999996]},"properties":{"id":1,"nombre":"Antigua Casa Pérez","localidad":"San Andrés de Giles","direccion":"Rivadavia y Belgrano","norma":"Ord. 1064/05 (Dec. 1497)","año":"2005","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Construcción de valor arquitectónico.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45572,-34.44655]},"properties":{"id":2,"nombre":"Farmacia Novelli","localidad":"San Andrés de Giles","direccion":"Rivadavia y Alsina","norma":"Ord. 1064/05","año":"2005","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Tradicional farmacia y arquitectura comercial.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45905,-34.44625]},"properties":{"id":3,"nombre":"Chanta Cuatro","localidad":"San Andrés de Giles","direccion":"Av. España y Av. Scully","norma":"Ord. 1064/05","año":"2005","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Emblemático bar y punto de encuentro social.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.460654999999996,-34.44835]},"properties":{"id":4,"nombre":"Edificio Terreri","localidad":"San Andrés de Giles","direccion":"25 de Mayo e/ Mitre y Belgrano","norma":"Ord. 1064/05","año":"2005","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Edificio de valor arquitectónico destacado.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.458235,-34.447]},"properties":{"id":5,"nombre":"Avenida Lucas Scully","localidad":"San Andrés de Giles","direccion":"Av. Lucas Scully (trazado)","norma":"Ord. 1064/05","año":"2005","categoria":"Urbanístico - Ambiental / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Trazado vial y boulevard histórico fundacional.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.457539999999995,-34.44855]},"properties":{"id":6,"nombre":"Monumento a los Caídos en Malvinas (Gesta Atlántico Sur)","localidad":"San Andrés de Giles","direccion":"Plaza Saraví","norma":"Ord. 1064/05 / Ord. 119/88","año":"1988/2005","categoria":"Histórico - Simbólico / Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Cartelería colocada; espacio de homenaje.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4923,-34.3602]},"properties":{"id":7,"nombre":"Edificio Ex Fonda de Sforzini","localidad":"Azcuénaga","direccion":"Av. Pedro Terrén s/n","norma":"Ord. 1223/07 (Dec. 1533)","año":"2007","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Fonda tradicional del pueblo de Azcuénaga.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4913,-34.3594]},"properties":{"id":8,"nombre":"Edificio del Club Recreativo Apolo","localidad":"Azcuénaga","direccion":"Av. Pedro Terrén y El Ombú","norma":"Ord. 1223/07","año":"2007","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Centro social y cultural histórico de Azcuénaga.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455659999999995,-34.45125]},"properties":{"id":9,"nombre":"Antigua Escuela EP Nº 3 Gral. San Martín (Sobot)","localidad":"San Andrés de Giles","direccion":"Pichetto e/ Guevara y Alem","norma":"Ord. 1322/08","año":"2008","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Primitivo edificio escolar urbano.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45439,-34.4523]},"properties":{"id":10,"nombre":"Bóveda de la Familia Merlo","localidad":"San Andrés de Giles","direccion":"Cementerio Norte","norma":"Ord. 1039/05 (Dec. 1020)","año":"2005","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Monumento funerario histórico.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.427,-34.504200000000004]},"properties":{"id":11,"nombre":"Edificio Escuela Nº 7 Martín Miguel de Güemes","localidad":"Tuyutí","direccion":"Paraje Tuyutí","norma":"Ord. 568/99 (Dec. 817)","año":"1999","categoria":"Histórico - Simbólico / Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Pedido formal de obras de restauración por filtraciones.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4,-34.3934]},"properties":{"id":12,"nombre":"Almacén o Boliche de Tejo","localidad":"Los Manueles","direccion":"Camino a Capilla del Señor","norma":"Ord. 688/01 (Dec. 747)","año":"2001","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Boliche de campo tradicional.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4103,-34.360299999999995]},"properties":{"id":13,"nombre":"Primitivo Edificio Escuela Nº 5","localidad":"Cucullú","direccion":"Frente a Estación Ferroviaria","norma":"Ord. 688/01","año":"2001","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Vivienda Saturnina González de Minutti.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.513,-34.4624]},"properties":{"id":14,"nombre":"Edificio Escuela Rural Nº 9 (de Santía)","localidad":"Zona Rural","direccion":"Área rural de S.A. de Giles","norma":"Ord. 688/01","año":"2001","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Escuela de campo representativa.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4913,-34.3594]},"properties":{"id":15,"nombre":"Cooperativa Eléctrica de Azcuénaga","localidad":"Azcuénaga","direccion":"Planta urbana de Azcuénaga","norma":"Ord. 688/01","año":"2001","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Institución comunitaria histórica.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4556,-34.444250000000004]},"properties":{"id":16,"nombre":"Almacén de García","localidad":"San Andrés de Giles","direccion":"Cno. Soldado Maciel y Diag. Morgan","norma":"Ord. 826/03","año":"2003","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Almacén histórico periurbano.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.458355,-34.4462]},"properties":{"id":17,"nombre":"Herrería Croce (de Nicota)","localidad":"San Andrés de Giles","direccion":"Rivadavia y Av. Lucas Scully","norma":"Ord. 883/03 (Dec. 1300)","año":"2003","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Taller de herrería tradicional.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4573725,-34.4464]},"properties":{"id":18,"nombre":"Primitiva Escuela Nº 12 (de la Portada)","localidad":"San Andrés de Giles","direccion":"Av. Lucas Scully y Lavalle","norma":"Ord. 883/03","año":"2003","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Antigua sede de la Escuela 12.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4113,-34.36109999999999]},"properties":{"id":19,"nombre":"Posta de Rodríguez (Estancia de Taverna)","localidad":"Cucullú","direccion":"Cuartel 3º","norma":"Ord. 883/03","año":"2003","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Posta colonial e hito de carretas.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4567625,-34.447599999999994]},"properties":{"id":20,"nombre":"Sociedad Española de Socorros Mutuos","localidad":"San Andrés de Giles","direccion":"Rivadavia e/ Avellaneda y Mitre","norma":"Ord. 883/03","año":"2003","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Cine teatro, salón de actos y dependencias.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4556,-34.44652]},"properties":{"id":21,"nombre":"Monumento a Inmigrantes y Gral. Belgrano","localidad":"San Andrés de Giles","direccion":"Plaza San Martín sobre calle Belgrano","norma":"Ord. 883/03","año":"2003","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Autores: Arqs. Albeverio, de Simone y Freggiaro.","color":"#876411","aprox":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455659999999995,-34.447]},"properties":{"id":22,"nombre":"Esculturas Alegorías de Primavera y Agricultura","localidad":"San Andrés de Giles","direccion":"Plazoleta del Estudiante (frente Esc. 12)","norma":"Ord. 883/03","año":"2003","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Conjunto de estatuas clásicas.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45554,-34.4463]},"properties":{"id":23,"nombre":"Estatua del Sembrador","localidad":"San Andrés de Giles","direccion":"Plazoleta del Inmigrante","norma":"Ord. 883/03","año":"2003","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Escultura en homenaje al trabajo agrario.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.457719999999995,-34.448699999999995]},"properties":{"id":24,"nombre":"Escultura Naturaleza en Lucha","localidad":"San Andrés de Giles","direccion":"Plaza Saraví sobre calle 25 de Mayo","norma":"Ord. 883/03","año":"2003","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Obra escultórica patrimonial.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.458175,-34.4439]},"properties":{"id":25,"nombre":"Tótem Como anda el campo, anda el pueblo","localidad":"San Andrés de Giles","direccion":"Diagonal Morgan y Av. Scully","norma":"Ord. 883/03","año":"2003","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Autor: artista Michael Schnorr.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4873,-34.356199999999994]},"properties":{"id":26,"nombre":"Casa Terrén (Almacén Ramos Generales)","localidad":"Azcuénaga","direccion":"Av. Pedro Terrén y Julia Vildasola","norma":"Ord. 20/93 (Dec. 154)","año":"1993","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Edificio emblemático de Azcuénaga con plan de acción.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45354,-34.4487]},"properties":{"id":27,"nombre":"Casa de Alejandro Vignati","localidad":"San Andrés de Giles","direccion":"25 de Mayo y Sarmiento","norma":"Ord. 58/91","año":"1991","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Vivienda del destacado escritor.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4556,-34.4467]},"properties":{"id":28,"nombre":"Plaza San Martín","localidad":"San Andrés de Giles","direccion":"Casco urbano central","norma":"Ord. 83/88","año":"1988","categoria":"Histórico - Simbólico / Urbanístico - Ambiental","estado":"Registro Definitivo","obs":"Plaza principal y trazado fundacional.","color":"#7A3622","aprox":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455025,-34.44598]},"properties":{"id":29,"nombre":"Templo Parroquial San Andrés","localidad":"San Andrés de Giles","direccion":"San Martín y Belgrano","norma":"Ord. 83/88","año":"1988","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Templo matriz erigido en 1832.","color":"#876411","aprox":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455479999999994,-34.4465]},"properties":{"id":30,"nombre":"Cruz del Obispo Escalada","localidad":"San Andrés de Giles","direccion":"Zona urbana","norma":"Ord. 119/88 (Dec. 228/82)","año":"1988","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Hito conmemorativo religioso; placa colocada.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.44846,-34.45295]},"properties":{"id":31,"nombre":"Monumento a Mitre","localidad":"San Andrés de Giles","direccion":"Parque Tiro Federal","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Monumento conmemorativo.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.454089999999994,-34.452200000000005]},"properties":{"id":32,"nombre":"Cementerio Sud","localidad":"San Andrés de Giles","direccion":"Sector sur de la ciudad","norma":"Ord. 119/88 (Dec. 29/89)","año":"1988","categoria":"Urbanístico - Ambiental / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Sitio de enterramientos históricos.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.451299999999996,-34.44695]},"properties":{"id":33,"nombre":"Hito Fundacional de S.A. de Giles","localidad":"San Andrés de Giles","direccion":"Margen derecha arroyo y calle Saavedra","norma":"Ord. 119/88","año":"1988","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Hito del oratorio de Pedro de Giles.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4863,-34.355399999999996]},"properties":{"id":34,"nombre":"Estación Azcuénaga (F.C. Mitre)","localidad":"Azcuénaga","direccion":"Predio de la estación","norma":"Ord. 119/88","año":"1988","categoria":"Urbanístico - Ambiental / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Edificio y entorno ferroviario.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455659999999995,-34.4464]},"properties":{"id":35,"nombre":"Estancia La Paterna de Díaz","localidad":"San Andrés de Giles","direccion":"Área rural","norma":"Ord. 119/88","año":"1988","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Estancia pionera de la colonización.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.0976,-34.0202]},"properties":{"id":36,"nombre":"Estancia La Paterna de Cañada de la Cruz","localidad":"Cañada de la Cruz","direccion":"Área rural","norma":"Ord. 119/88","año":"1988","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Casco rural tradicional.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4556,-34.44535]},"properties":{"id":37,"nombre":"Intendencia Municipal (Palacio Municipal)","localidad":"San Andrés de Giles","direccion":"Moreno e/ Rivadavia y San Martín","norma":"Ord. 83/88","año":"1988","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Sede gubernamental municipal.","color":"#876411","aprox":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455025,-34.44535]},"properties":{"id":38,"nombre":"Edificio Correo Argentino","localidad":"San Andrés de Giles","direccion":"Moreno y San Martín","norma":"Ord. 83/88","año":"1988","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Edificio público institucional.","color":"#876411","aprox":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455729999999996,-34.4461]},"properties":{"id":39,"nombre":"Edificio Ex Casa Méndez","localidad":"San Andrés de Giles","direccion":"Rivadavia y Moreno","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Comercio y arquitectura clásica de esquina.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455839999999995,-34.44585]},"properties":{"id":40,"nombre":"Escuela Primaria Nº 1","localidad":"San Andrés de Giles","direccion":"Rivadavia y Belgrano","norma":"Ord. 119/88","año":"1988","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Primera escuela del partido.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.460895,-34.448699999999995]},"properties":{"id":41,"nombre":"Terminal de Ómnibus (Complejo Museográfico)","localidad":"San Andrés de Giles","direccion":"25 de Mayo y Mitre","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Sede del Complejo Museográfico y Cultural.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.459624999999996,-34.444]},"properties":{"id":42,"nombre":"Estación Giles (F.C. Urquiza)","localidad":"San Andrés de Giles","direccion":"Morgan y España","norma":"Ord. 119/88","año":"1988","categoria":"Urbanístico - Ambiental / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Parque y estación ferroviaria.","color":"#7A3622","aprox":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45432999999999,-34.45215]},"properties":{"id":43,"nombre":"Tumba de Enrique de Larrañaga","localidad":"San Andrés de Giles","direccion":"Cementerio Norte","norma":"Ord. 119/88","año":"1988","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Pintor gilense de renombre internacional.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45536,-34.4478]},"properties":{"id":44,"nombre":"Antiguo Edificio Biblioteca Alberdi","localidad":"San Andrés de Giles","direccion":"Belgrano y 25 de Mayo","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Sede histórica de la biblioteca popular.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.448339999999995,-34.45335]},"properties":{"id":45,"nombre":"Polígono de Tiro Federal","localidad":"San Andrés de Giles","direccion":"Etcheverry y Piñero","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Parque cívico y deportivo.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45475,-34.451750000000004]},"properties":{"id":46,"nombre":"Tumba del Capitán Justiniano Marcos Alvis","localidad":"San Andrés de Giles","direccion":"Cementerio Norte","norma":"Ord. 119/88","año":"1988","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Personalidad histórica local.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45578,-34.4465]},"properties":{"id":47,"nombre":"Antigua Feria de Alvis","localidad":"San Andrés de Giles","direccion":"Zona suburbana","norma":"Ord. 119/88","año":"1988","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Instalaciones de feria ganadera (desaparecidas).","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455085,-34.44665]},"properties":{"id":48,"nombre":"Casa Cámpora (San Martín 791)","localidad":"San Andrés de Giles","direccion":"San Martín 791","norma":"Ord. 119/88","año":"1988","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Residencia del Dr. Héctor J. Cámpora; placa colocada.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45554,-34.4468]},"properties":{"id":49,"nombre":"Capilla Nuestra Señora de Monte de Novi","localidad":"San Andrés de Giles","direccion":"Paraje Monte de Novi","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Capilla religiosa histórica.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.5567,-34.549800000000005]},"properties":{"id":50,"nombre":"Antiguo Edificio Escuela Nº 8","localidad":"Solís","direccion":"Localidad de Solís","norma":"Ord. 119/88","año":"1988","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Edificio escolar histórico de Solís.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4903,-34.358599999999996]},"properties":{"id":51,"nombre":"Capilla Nuestra Señora del Rosario","localidad":"Azcuénaga","direccion":"Localidad de Azcuénaga","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Templo parroquial de Azcuénaga.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455484999999996,-34.44661]},"properties":{"id":52,"nombre":"Monumento a la Libertad","localidad":"San Andrés de Giles","direccion":"Plaza San Martín","norma":"Ord. 83/88","año":"1988","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Estatua conmemorativa; libro histórico en Soc. Esp.","color":"#876411","aprox":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455839999999995,-34.44655]},"properties":{"id":53,"nombre":"Pinacoteca del Palacio Municipal","localidad":"San Andrés de Giles","direccion":"Palacio Municipal","norma":"Ord. 83/88","año":"1988","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Colección de arte comunal.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45572,-34.4467]},"properties":{"id":54,"nombre":"Mural del Pbro. Vicente Piñero","localidad":"San Andrés de Giles","direccion":"Palacio Municipal","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Obra muralística histórica.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.457899999999995,-34.449099999999994]},"properties":{"id":55,"nombre":"Monumento a la Madre","localidad":"San Andrés de Giles","direccion":"Plaza Saraví","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Escultura de homenaje maternal.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45777999999999,-34.44925]},"properties":{"id":56,"nombre":"Monumento a los Caídos en Malvinas (Plaza Saraví)","localidad":"San Andrés de Giles","direccion":"Plaza Saraví","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Monumento conmemorativo en Plaza Saraví.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455715,-34.44679]},"properties":{"id":57,"nombre":"Fuente de la Plaza San Martín","localidad":"San Andrés de Giles","direccion":"Plaza San Martín","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Fuente histórica ornamental.","color":"#876411","aprox":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.448339999999995,-34.45275]},"properties":{"id":58,"nombre":"Fuente del Tiro Federal","localidad":"San Andrés de Giles","direccion":"Parque de Tiro Federal","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Fuente ornamental del parque.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4893,-34.3578]},"properties":{"id":59,"nombre":"Templete de Nuestra Señora de Luján","localidad":"Azcuénaga","direccion":"Localidad de Azcuénaga","norma":"Ord. 119/88","año":"1988","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Templete religioso.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.5133,-34.4028]},"properties":{"id":60,"nombre":"Posta de Figueroa (Estancia La Merced)","localidad":"San Andrés de Giles","direccion":"Cuartel VII, Camino Real","norma":"Ord. 49/88 / Ley Prov. 10965","año":"1988","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Monumento Histórico Municipal y Provincial. Ver declaratoria nacional Dec. PEN 616/21.","color":"#7A3622","aprox":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.455085,-34.4469]},"properties":{"id":61,"nombre":"Fachada Sociedad Italiana de Socorros Mutuos","localidad":"San Andrés de Giles","direccion":"San Martín 80","norma":"Ord. 150/94 (Dec. 538)","año":"1994","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Fachada de alto valor artístico-arquitectónico.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4863,-34.355399999999996]},"properties":{"id":62,"nombre":"Mural de Adobe de Azcuénaga","localidad":"Azcuénaga","direccion":"Predio de la estación Azcuénaga","norma":"Ord. 929/04","año":"2004","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Taller Carlos Moreyra; solicitud de pat. provincial.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.44967,-34.44545]},"properties":{"id":63,"nombre":"Edificio Escuela Normal Superior Fray M. Esquiú","localidad":"San Andrés de Giles","direccion":"Rivadavia 1165","norma":"Ord. 1787/14","año":"2014","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Edificio histórico del Colegio Nacional.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.454724999999996,-34.4465]},"properties":{"id":64,"nombre":"Estatua de San Andrés Apóstol","localidad":"San Andrés de Giles","direccion":"Templo Parroquial (San Martín y Belgrano)","norma":"Ord. 2053/17","año":"2017","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Talla de madera bicentenaria del Santo Patrono.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45596,-34.44665]},"properties":{"id":65,"nombre":"Arbolado Público Urbano y Espacios Verdes","localidad":"Todo el Partido","direccion":"Espacios verdes, ramblas, arbolado viario","norma":"Ord. 1635/12","año":"2012","categoria":"Patrimonio Natural","estado":"Registro Definitivo","obs":"Régimen integral de arbolado y arboles singulares.","color":"#1A6B5A","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45986499999999,-34.4468]},"properties":{"id":66,"nombre":"Murales de Walter Leonelli (Bamby) - 7 Muros","localidad":"San Andrés de Giles","direccion":"7 muros urbanos (RN7, Av. España, EET 1, Fábrica Norale, etc.)","norma":"Ordenanza Nº 2345/21 (Dec. 929)","año":"2021","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Conjunto de 7 murales representativos del artista local.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.456179999999996,-34.44695]},"properties":{"id":67,"nombre":"Edificio Ex Club Cutillas (Moreno y Lavalle)","localidad":"San Andrés de Giles","direccion":"Lavalle y Moreno","norma":"Ordenanza Nº 2346/21 (Dec. 930)","año":"2021","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Ex Club Cutillas y Centro de Jubilados.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.559799999999996,-34.414199999999994]},"properties":{"id":68,"nombre":"Frente del Antiguo Campo de Deportes de Villa Espil","localidad":"Villa Espil","direccion":"Calle Juan Alvis","norma":"Ordenanza Nº 2369/21","año":"2021","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Entrada y tapial original donado por Alberto Espil.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45432999999999,-34.4518]},"properties":{"id":69,"nombre":"Sepulcro del Dr. Héctor J. Cámpora","localidad":"San Andrés de Giles","direccion":"Cementerio Norte","norma":"Ordenanza Nº 2416/21","año":"2021","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Sepulcro del Ex Presidente de la Nación Argentina.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.450759999999995,-34.4461]},"properties":{"id":70,"nombre":"Sede Actual y Antigua Sede del Comité UCR","localidad":"San Andrés de Giles","direccion":"Rivadavia y Saavedra / Belgrano 500","norma":"Ordenanza Nº 78/21 (Dec. 2273/21)","año":"2021","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Placa colocada en mayo de 2022.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.457539999999995,-34.448949999999996]},"properties":{"id":71,"nombre":"Vigilia Malvinas, SAG te canta - Fogón Criollo","localidad":"San Andrés de Giles","direccion":"Plaza Saraví y espacios del distrito","norma":"Ordenanza Nº 41/21 (Dec. 1565/21)","año":"2021","categoria":"Patrimonio Cultural Inmaterial / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Reconocimiento a la vigilia y obra de Marcelo Daverio.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.5133,-34.4028]},"properties":{"id":72,"nombre":"Posta de Figueroa / Hacienda de Figueroa (PEN)","localidad":"San Andrés de Giles","direccion":"Cuartel VII, Camino Real","norma":"Decreto PEN Nº 616/2021","año":"2021","categoria":"Histórico - Simbólico","estado":"Declaración Nacional (MHN)","obs":"Monumento Histórico Nacional. Placa oficial colocada.","color":"#7A3622","aprox":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.428,-34.505]},"properties":{"id":73,"nombre":"Capilla Nuestra Señora del Pilar","localidad":"Tuyutí","direccion":"Paraje Rural Tuyutí","norma":"Ordenanza Nº 2492/22","año":"2022","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Capilla de culto católico en pleno ámbito rural.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.449909999999996,-34.4454]},"properties":{"id":74,"nombre":"Entorno Urbano Colegio Nacional y Plaza Saraví","localidad":"San Andrés de Giles","direccion":"Rivadavia 1165 y Plaza Saraví","norma":"Ordenanza Nº 2526/22","año":"2022","categoria":"Urbanístico - Ambiental","estado":"Registro Definitivo","obs":"Protege el conjunto espacial, plaza y arboleda.","color":"#3A6B35","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.496199999999995,-34.429399999999994]},"properties":{"id":75,"nombre":"Estación de Servicio de Villa Ruiz","localidad":"Villa Ruiz","direccion":"Cno. Secundario 094-02 y Rivadavia","norma":"Resolución HCD Nº 11/23","año":"2023","categoria":"Histórico - Simbólico / Artístico - Arquitectónico","estado":"Declaración de Interés","obs":"Estación YPF histórica de 1963; escenario fílmico nacional.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.5588,-34.413399999999996]},"properties":{"id":76,"nombre":"Casa Municipal de Villa Espil (Cabildo / Sala de Auxilios)","localidad":"Villa Espil","direccion":"Simón Cucullú e/ Resta y Alvis","norma":"Dictamen CMAPCSAG","año":"2021","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Preventivo (Dictamen)","obs":"Protección de fachada, jardín y patio. Primer bien comunal.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45184999999999,-34.4472]},"properties":{"id":77,"nombre":"Ex Casa Dr. Beltrán O. Echandi – Dr. Héctor Collazo","localidad":"San Andrés de Giles","direccion":"Avellaneda Nº 437 e/ Rivadavia y 25 de Mayo","norma":"Ordenanza Nº 39/21 (Decreto Nº 1561/21)","año":"2021","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Vivienda italianizante de 1925 ligada a médicos ilustres y Amanda Ledesma. Declarada por Ord. 39/21 y Dec. 1561/21. Cartelería colocada.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.454809999999995,-34.4523]},"properties":{"id":78,"nombre":"Rancho de Adobe Tradicional (Rancho de Mariño)","localidad":"San Andrés de Giles","direccion":"Inmediaciones del Cementerio Norte","norma":"Dictamen CMAPCSAG","año":"2021","categoria":"Artístico - Arquitectónico","estado":"Registro Preventivo (Dictamen)","obs":"Tipología rancho pampeano de adobe; da origen al Registro de Ranchos.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45354,-34.446149999999996]},"properties":{"id":79,"nombre":"Conjunto de las Cuatro Esquinas Tradicionales","localidad":"San Andrés de Giles","direccion":"Rivadavia y Sarmiento","norma":"Dictamen CMAPCSAG","año":"2020","categoria":"Artístico - Arquitectónico","estado":"Registro Preventivo (Dictamen)","obs":"Conjunto de 4 esquinas de arquitectura representativa.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.459745,-34.443650000000005]},"properties":{"id":80,"nombre":"Bar El Viejo Tropezón (Bar Rivero / Lo Rivero)","localidad":"San Andrés de Giles","direccion":"Av. España y Diagonal Morgan","norma":"Ordenanza Nº 40/21 - Ord. Nº 2366/21 (Dec. 1564/21)","año":"2021","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Protección de bar, vereda y pérgola tradicional. Declarado por Ord. 40/21 (Ord. 2366/21) y Dec. 1564/21. Placa oficial colocada el 03/03/2023.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4556,-34.4465]},"properties":{"id":81,"nombre":"Equipamientos Urbanos y Rurales Tradicionales","localidad":"San Andrés de Giles y Partido","direccion":"Diversas aceras y espacios públicos urbanos y rurales","norma":"Ordenanza Nº 79/21 (Decreto Nº 2276/21)","año":"2021","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Declarados por Ord. 79/21 y Dec. 2276/21. Incluye sujetadores metálicos de caballos en aceras, luminarias, parlantes Tito Valli, buzones y surtidores.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45524999999999,-34.44845]},"properties":{"id":82,"nombre":"Ex Casa Miguel Peláez (Almacén de Ramos Generales)","localidad":"San Andrés de Giles","direccion":"25 de Mayo y Moreno","norma":"Ordenanza Nº 2461/2022 (Decreto Nº 1125/24)","año":"2022 / 2024","categoria":"Artístico - Arquitectónico / Histórico - Simbólico","estado":"Registro Definitivo","obs":"Declarada bien patrimonial por Ordenanza Nº 2461/2022. Decreto Nº 1125/24 (12/03/2024) otorga exención de Tasa por Servicios Urbanos (ejercicios 2019, 2023, 2024) en virtud del Art. 15 Ord. 2182/19 y Art. 93 inc. h Ord. Fiscal 2243/22. Conserva libros mayores, mobiliario de época y caja fuerte.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.454785,-34.4468]},"properties":{"id":83,"nombre":"Ex Panadería Vicente Vignatti (Santa Teresita / Panadería Emanuel)","localidad":"San Andrés de Giles","direccion":"San Martín Nº 1129","norma":"Decreto Municipal Nº 1084/22 (Boletín SIBOM 7353)","año":"2022","categoria":"Histórico - Simbólico","estado":"Registro Definitivo","obs":"Fundada en 1916; más de 100 años de actividad continua en el rubro panadero. Ingresada a Registro Definitivo por Dec. 1084/22. Placa oficial descubierta el 26/04/2024.","color":"#7A3622","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.460415,-34.4492]},"properties":{"id":84,"nombre":"Colección Escultórica Dora Aurelia Díaz Villafañe","localidad":"San Andrés de Giles","direccion":"Complejo Museográfico (25 de Mayo y Mitre)","norma":"Dictamen CMAPCSAG (Acta 20)","año":"2021","categoria":"Artístico - Arquitectónico","estado":"Registro Preventivo (Dictamen)","obs":"Colección de esculturas donadas al patrimonio municipal.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.4559,-34.4471]},"properties":{"id":85,"nombre":"Mural Donación Familia Cesario (Obra \"Pampa Bonaerense\" de Ítalo Ferraris)","localidad":"San Andrés de Giles","direccion":"Complejo Museográfico y Cultural","norma":"Resolución / Disposición DE (Acta 21) - Reg. Definitivo","año":"2022","categoria":"Artístico - Arquitectónico","estado":"Registro Definitivo","obs":"Mural de 4 x 1,50 m pintado por el maestro Ítalo Ferraris (\"Pampa bonaerense\"). Donado formalmente e incorporado al acervo patrimonial definitivo comunal.","color":"#876411","aprox":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-59.45578,-34.4464]},"properties":{"id":86,"nombre":"Manuscrito Breve Memoria de Origen y Progreso de SAG","localidad":"San Andrés de Giles","direccion":"Archivo Comunal / Histórico","norma":"Acuerdo CMAPCSAG (26/03/2021)","año":"2021","categoria":"Patrimonio Documental / Inmaterial","estado":"Registro Preventivo (Dictamen)","obs":"Manuscrito original fundacional escrito por Vicente Cutillas.","color":"#4A4A8B","aprox":true}}]};
+
+const TILE_CONFIGS = {
+  satelite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attr: '© Esri, DigitalGlobe, GeoEye, i-cubed, USDA FSA, USGS, AEX, Getmapping, Aerogrid, IGN, IGP, UPR-EGP'
+  },
+  hibrido: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attr: '© Esri © OpenStreetMap contributors',
+    overlay: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+  },
+  osm: {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attr: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  },
+  topo: {
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attr: '© <a href="https://opentopomap.org">OpenTopoMap</a> contributors'
+  }
+};
+
+const CAT_COLORS = {
+  'Artístico-Arquitectónico': '#876411',
+  'Histórico-Simbólico':      '#7A3622',
+  'Urbanístico-Ambiental':    '#3A6B35',
+  'Inmaterial':               '#4A4A8B',
+  'Natural':                  '#1A6B5A'
+};
+
+let leafMap, baseTileLayer, overlayTileLayer, bienesLayer, parcelarioLayer;
+let activeMarker = null;
+
+function initMap() {
+  if (!document.getElementById('leafletMap')) return;
+  leafMap = L.map('leafletMap', {
+    center: [-34.4467, -59.4556],
+    zoom: 15,
+    zoomControl: true
+  });
+  // Default: satellite
+  setBaseTile('satelite');
+  buildBienesLayer();
+  buildSideList();
+}
+
+function setBaseTile(key) {
+  const cfg = TILE_CONFIGS[key];
+  if (baseTileLayer) leafMap.removeLayer(baseTileLayer);
+  if (overlayTileLayer) { leafMap.removeLayer(overlayTileLayer); overlayTileLayer = null; }
+  baseTileLayer = L.tileLayer(cfg.url, { attribution: cfg.attr, maxZoom: 20 }).addTo(leafMap);
+  if (cfg.overlay) {
+    overlayTileLayer = L.tileLayer(cfg.overlay, { attribution: '', opacity: 0.45, maxZoom: 20 }).addTo(leafMap);
+  }
+}
+
+function switchMapTile(key, btn) {
+  document.querySelectorAll('.map-tile-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  setBaseTile(key);
+}
+
+function makeCircleMarker(feature) {
+  const color = feature.properties.color || '#888';
+  const aprox = feature.properties.aprox;
+  return L.circleMarker(
+    [feature.geometry.coordinates[1], feature.geometry.coordinates[0]],
+    {
+      radius: aprox ? 7 : 9,
+      fillColor: color,
+      color: '#fff',
+      weight: aprox ? 1 : 2,
+      opacity: 1,
+      fillOpacity: aprox ? 0.55 : 0.85,
+      dashArray: aprox ? '4 3' : null
+    }
+  );
+}
+
+function buildBienesLayer() {
+  bienesLayer = L.geoJSON(BIENES_GEOJSON, {
+    pointToLayer: (feature, latlng) => makeCircleMarker(feature),
+    onEachFeature: (feature, layer) => {
+      const p = feature.properties;
+      layer.on('click', () => showBienDetail(p, layer));
+      layer.bindTooltip(p.nombre, { direction: 'top', offset: [0, -8] });
+    }
+  }).addTo(leafMap);
+}
+
+let allItems = [];
+
+function buildSideList() {
+  allItems = BIENES_GEOJSON.features.map(f => f.properties);
+  renderList(allItems);
+}
+
+function renderList(items) {
+  const el = document.getElementById('mapBienesList');
+  if (!el) return;
+  if (items.length === 0) {
+    el.innerHTML = '<p style="padding:1rem;color:var(--text-3);font-size:.75rem">Sin resultados</p>';
+    return;
+  }
+  el.innerHTML = items.map(p => `
+    <div class="map-list-item" onclick="flyToBien('${p.id}')" data-id="${p.id}">
+      <span class="map-list-dot" style="background:${p.color || '#888'}"></span>
+      <div>
+        <div class="map-list-name">${p.nombre}</div>
+        <div class="map-list-meta">${p.categoria || ''} · ${p.localidad || ''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterMapList(v) {
+  const q = (v !== undefined ? v : (document.getElementById('mapSearch')?.value || '')).toLowerCase();
+  if (!q) { renderList(allItems); return; }
+  renderList(allItems.filter(p =>
+    (p.nombre || '').toLowerCase().includes(q) ||
+    (p.categoria || '').toLowerCase().includes(q) ||
+    (p.localidad || '').toLowerCase().includes(q) ||
+    (p.direccion || '').toLowerCase().includes(q)
+  ));
+}
+
+function flyToBien(id) {
+  const feature = BIENES_GEOJSON.features.find(f => f.properties.id == id);
+  if (!feature) return;
+  const [lng, lat] = feature.geometry.coordinates;
+  leafMap.flyTo([lat, lng], 17, { duration: 1 });
+  bienesLayer.eachLayer(layer => {
+    if (layer.feature && layer.feature.properties.id == id) {
+      showBienDetail(layer.feature.properties, layer);
+    }
+  });
+}
+
+function showBienDetail(p, layer) {
+  const panel = document.getElementById('mapBienDetail');
+  if (!panel) return;
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.8rem">
+      <span style="font-size:.6rem;font-family:'DM Mono',monospace;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em">Ficha Patrimonial</span>
+      <button onclick="closeDetail()" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:1rem;line-height:1">×</button>
+    </div>
+    <h3 style="font-family:'Playfair Display',serif;font-size:1rem;margin:0 0 .6rem">${p.nombre}</h3>
+    <div style="display:grid;gap:.35rem">
+      ${p.categoria ? `<div class="map-detail-row"><span>Categoría</span><strong style="color:${p.color}">${p.categoria}</strong></div>` : ''}
+      ${p.estado ? `<div class="map-detail-row"><span>Estado registral</span><strong>${p.estado}</strong></div>` : ''}
+      ${p.localidad ? `<div class="map-detail-row"><span>Localidad</span><span>${p.localidad}</span></div>` : ''}
+      ${p.direccion ? `<div class="map-detail-row"><span>Dirección</span><span>${p.direccion}</span></div>` : ''}
+      ${p.año ? `<div class="map-detail-row"><span>Año</span><span>${p.año}</span></div>` : ''}
+      ${p.norma ? `<div class="map-detail-row"><span>Norma legal</span><span>${p.norma}</span></div>` : ''}
+      ${p.obs ? `<div class="map-detail-row" style="grid-column:1/-1"><span>Observaciones</span><span style="color:var(--text-2)">${p.obs}</span></div>` : ''}
+      ${p.aprox ? `<div style="font-size:.6rem;color:var(--text-3);margin-top:.4rem;font-style:italic">* Ubicación aproximada</div>` : ''}
+    </div>
+  `;
+  // Highlight marker
+  if (activeMarker) activeMarker.setStyle({ weight: 2, radius: activeMarker._radius_orig || 9 });
+  if (layer) {
+    layer._radius_orig = layer.options.radius;
+    layer.setStyle({ weight: 4, radius: 12 });
+    activeMarker = layer;
+  }
+}
+
+function closeDetail() {
+  const panel = document.getElementById('mapBienDetail');
+  if (panel) panel.style.display = 'none';
+  if (activeMarker) {
+    activeMarker.setStyle({ weight: activeMarker.options.fillOpacity < 0.7 ? 1 : 2, radius: activeMarker._radius_orig || 9 });
+    activeMarker = null;
+  }
+}
+
+function loadGeoJSONFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const gj = JSON.parse(e.target.result);
+      if (parcelarioLayer) leafMap.removeLayer(parcelarioLayer);
+      parcelarioLayer = L.geoJSON(gj, {
+        style: { color: '#e8c068', weight: 1.5, fillOpacity: 0.08, fillColor: '#e8c068' }
+      }).addTo(leafMap);
+      leafMap.fitBounds(parcelarioLayer.getBounds().pad(0.05));
+    } catch(err) {
+      alert('Error al cargar GeoJSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Drag & drop GeoJSON
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  const f = e.dataTransfer?.files?.[0];
+  if (f && (f.name.endsWith('.geojson') || f.name.endsWith('.json'))) loadGeoJSONFile(f);
+});
+
+// File input handler
+document.addEventListener('DOMContentLoaded', () => {
+  initMap();
+  const gjInput = document.getElementById('gjInput');
+  if (gjInput) gjInput.addEventListener('change', e => {
+    if (e.target.files?.[0]) loadGeoJSONFile(e.target.files[0]);
+    e.target.value = '';
+  });
+});
+</script>
+
+</html>
